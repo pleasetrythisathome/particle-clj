@@ -1,0 +1,5 @@
+[[clj-http "1.0.1"]
+ [cljs-http "0.1.20"]
+ [garden "1.2.5"]
+ [hiccup "1.0.5"]
+ [ring/ring-defaults "0.1.2"]]

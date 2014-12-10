@@ -15,7 +15,7 @@
  '[adzerk.boot-cljs-repl :refer [cljs-repl]]
  '[adzerk.boot-reload    :refer [reload]]
  '[boot-garden.core      :refer [garden]]
- '[deraen.boot-cljx      :refer [cljs]]
+ '[deraen.boot-cljx      :refer [cljx]]
  '[pandeiro.http         :refer [serve]]
  '[clojure.tools.namespace.repl :refer [set-refresh-dirs]])
 
@@ -36,11 +36,12 @@
               :unified true
               :source-map true
               :pretty-print true)
-        (reload)))
+        (reload)
+        (serve {:dir "target"})))
 
 (defn dev
   []
-;; set tools.namespace refresh directories
+  ;; set tools.namespace refresh directories
   (apply set-refresh-dirs (get-env :src-paths))
   (require 'dev)
   (in-ns 'dev))

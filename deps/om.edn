@@ -1,0 +1,4 @@
+[[om "0.8.0-beta2"]
+ [prismatic/om-tools "0.3.6" :exclusions [org.clojure/clojure]]
+ [racehub/om-bootstrap "0.3.1" :exclusions [org.clojure/clojure]]
+ [sablono "0.2.22" :exclusions [com.facebook/react]]]
