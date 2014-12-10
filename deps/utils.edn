@@ -1,0 +1,3 @@
+[[prismatic/plumbing "0.3.5"]
+ [prismatic/schema "0.3.2"]
+ [me.raynes/fs "1.4.6"]]
