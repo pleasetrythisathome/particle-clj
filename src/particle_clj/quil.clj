@@ -23,8 +23,25 @@
 (def sketch-fn-schema (s/make-fn-schema {} [[{}]]))
 (def event-fn-schema (s/make-fn-schema {} [[{} s/Any]]))
 
+(def options
+  {:title s/Str
+   :size (s/both [s/Int] (s/pred #(= 2 (count %))))
+   :renderer (s/enum :p2d :p3d :pdf :opengl)
+   :output-file s/Str
+   :display s/Int
+   :features [(s/enum :keep-on-top
+                      :exit-on-close
+                      :resizable
+                      :no-safe-fns
+                      :present
+                      :no-start)]
+   :bgcolor s/Str
+   :middleware [(s/make-fn-schema s/Any [[]])]})
+
 (def sketch-fns
-  [:focus-gained
+  [:setup
+   :draw
+   :focus-gained
    :focus-lost
    :on-close])
 
@@ -44,21 +61,14 @@
    :key-typed])
 
 (def new-quil-sketch-schema
-  (merge {:size [s/Int]
-          (s/optional-key :display) s/Int
-          :renderer (s/enum :p2d :p3d :pdf :opengl)
-          :middleware [(s/make-fn-schema s/Any [[]])]
-          (s/optional-key :features) [s/Keyword]
-          :setup (s/make-fn-schema {} [[]])
-          :draw sketch-fn-schema}
-         (zipmap (map s/optional-key sketch-fns) (repeat sketch-fn-schema))
-         (zipmap (map s/optional-key (concat mouse-events key-events)) (repeat event-fn-schema))))
+  (->> (merge options
+              (zipmap sketch-fns (repeat sketch-fn-schema))
+              (zipmap (concat mouse-events key-events) (repeat event-fn-schema)))
+       (map-keys s/optional-key)))
 
 (defn new-quil-sketch [& {:keys [fun-mode? debug?] :as opts}]
   (->> (dissoc opts :fun-mode? :debug?)
-       (merge {:size [200 200]
-               :renderer :p2d
-               :setup (constantly {})
+       (merge {:setup (constantly {})
                :draw identity})
        (<- (update :middleware (fn [middleware]
                                  (->> (or middleware [])
