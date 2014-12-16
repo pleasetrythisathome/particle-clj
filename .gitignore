@@ -12,6 +12,7 @@ pom.xml.asc
 .idea*
 *.iml
 .boot/
+*.log
 
 /resources/public/js/target/
 /resources/public/css/target/

@@ -14,14 +14,15 @@
 (defn draw
   [state]
   ;;(println state)
-  (q/background 255)
-  state)
+  (q/background 200)
+  ;;state
+  )
 
 (def start-sketch
   (partial new-quil-sketch
            :debug? true
-           :display 1
+           :display 0
            :size [800 600]
-           :features [:keep-on-top]
-           :setup setup
-           :draw draw))
+           ;;:features [:keep-on-top]
+           :setup #'setup
+           :draw #'draw))

@@ -48,7 +48,7 @@
           (s/optional-key :display) s/Int
           :renderer (s/enum :p2d :p3d :pdf :opengl)
           :middleware [(s/make-fn-schema s/Any [[]])]
-          :features [s/Keyword]
+          (s/optional-key :features) [s/Keyword]
           :setup (s/make-fn-schema {} [[]])
           :draw sketch-fn-schema}
          (zipmap (map s/optional-key sketch-fns) (repeat sketch-fn-schema))
@@ -64,7 +64,7 @@
                                  (->> (or middleware [])
                                       (cons m/fun-mode)
                                       (into [])
-                                      (<- (?> debug? (conj m/pause-on-error
+                                      (<- (?> debug? (conj ;;m/pause-on-error
                                                            show-frame-rate)))))))
        (s/validate new-quil-sketch-schema)
        (mapcat identity)
