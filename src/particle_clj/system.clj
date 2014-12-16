@@ -51,11 +51,13 @@
   [config]
   (system-map
    :quil (make new-quil-sketch config
+               :renderer :opengl
                :debug? true
                :display 0
                :size [800 600]
                :features [:keep-on-top]
                :setup #'sketch/setup
+               :update #'sketch/update-state
                :draw #'sketch/draw)))
 
 (defn new-dependency-map
