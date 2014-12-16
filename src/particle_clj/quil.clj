@@ -151,6 +151,7 @@
           applet (->> options
                       (<- (update :middleware conj
                                   (partial wrap-stopped stopped?)
+                                  pause-on-error
                                   (partial title-frame-rate frame)))
                       (mapcat identity)
                       (apply q/sketch))]
@@ -169,8 +170,7 @@
        (<- (update :middleware (fn [middleware]
                                  (->> (or middleware [])
                                       (cons m/fun-mode)
-                                      (into [])
-                                      (<- (?> debug? (conj pause-on-error)))))))
+                                      (into [])))))
        (s/validate new-quil-sketch-schema)
        (hash-map :options)
        (map->QuilSketch)))
