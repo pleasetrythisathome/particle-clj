@@ -20,11 +20,16 @@
                        (f))]
     (assoc options :draw updated-draw)))
 
-(defn show-frame-rate [options]
+(defn draw-frame-rate [options]
   (wrap-draw-fn (fn []
                (q/fill 0)
-               (q/text-num (q/current-frame-rate) 10 10))
-             options))
+               (q/text-num (q/current-frame-rate) 10 20))
+                options))
+
+(defn title-frame-rate [frame options]
+  (wrap-draw-fn (fn []
+                  (.setTitle @frame (str (q/current-frame-rate))))
+                options))
 
 (defn wrap-stopped [stopped-atom options]
   (wrap-draw-fn (fn []
@@ -109,6 +114,7 @@
 
 (def sketch-fns
   [:setup
+   :update
    :draw
    :focus-gained
    :focus-lost
@@ -140,12 +146,17 @@
 (defrecord QuilSketch [stopped? options]
   component/Lifecycle
   (start [this]
-    (let [stopped? (atom false)]
-      (->> options
-           (<- (update :middleware conj (partial wrap-stopped stopped?)))
-           (mapcat identity)
-           (apply q/sketch))
+    (let [stopped? (atom false)
+          frame (atom nil)
+          applet (->> options
+                      (<- (update :middleware conj
+                                  (partial wrap-stopped stopped?)
+                                  (partial title-frame-rate frame)))
+                      (mapcat identity)
+                      (apply q/sketch))]
+      (reset! frame (.-frame applet))
       (assoc this
+        :applet applet
         :stopped? stopped?)))
   (stop [this]
     (when-let [stopped? (:stopped? this)]
@@ -159,8 +170,7 @@
                                  (->> (or middleware [])
                                       (cons m/fun-mode)
                                       (into [])
-                                      (<- (?> debug? (conj pause-on-error
-                                                           show-frame-rate)))))))
+                                      (<- (?> debug? (conj pause-on-error)))))))
        (s/validate new-quil-sketch-schema)
        (hash-map :options)
        (map->QuilSketch)))
