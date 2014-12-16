@@ -12,7 +12,7 @@
 
 ;; ========== Middleware ==========
 
-(defn wrap-draw [f {:keys [draw]
+(defn wrap-draw-fn [f {:keys [draw]
                     :or {draw (fn [])}
                     :as options}]
   (let [updated-draw (fn [s]
@@ -21,71 +21,71 @@
     (assoc options :draw updated-draw)))
 
 (defn show-frame-rate [options]
-  (wrap-draw (fn []
+  (wrap-draw-fn (fn []
                (q/fill 0)
                (q/text-num (q/current-frame-rate) 10 10))
              options))
 
 (defn wrap-stopped [stopped-atom options]
-  (wrap-draw (fn []
+  (wrap-draw-fn (fn []
                (when @stopped-atom
                  (q/exit)))
              options))
 
-;; (defn- wrap-fn [pause name function do-on-pause]
-;;   (fn [& args]
-;;     (if @pause
-;;       (do-on-pause)
-;;       (try
-;;         (apply function args)
-;;         (catch Exception e
-;;           (println "Exception in " name " function: " e "\nstacktrace: " (with-out-str (print-cause-trace e)))
-;;           (reset! pause {:name name
-;;                          :exception e
-;;                          :time (java.util.Date.)}))))))
+(defn- wrap-fn [pause name function do-on-pause]
+  (fn [& args]
+    (if @pause
+      (do-on-pause)
+      (try
+        (apply function args)
+        (catch Exception e
+          (println "Exception in " name " function: " e "\nstacktrace: " (with-out-str (print-cause-trace e)))
+          (reset! pause {:name name
+                         :exception e
+                         :time (java.util.Date.)}))))))
 
-;; (defn- draw-error-message [pause]
-;;   (let [error (q/create-graphics (q/width) (q/height))]
-;;     (q/with-graphics error
-;;       (q/push-style)
-;;       (q/background 255)
-;;       (q/fill 0)
-;;       (q/text-size 15)
-;;       (let [{:keys [name exception time]} @pause
-;;             str [(format "Sketch was paused due to an exception thrown in %s" name)
-;;                  (str "Check REPL or console for stacktrace")
-;;                  (str "Time: " time)
-;;                  (str "Fix the error and then press any key to unpause sketch.")]]
-;;         (q/text (join \newline str) 10 20))
-;;       (q/pop-style))
-;;     (q/set-image 0 0 error)))
+(defn- draw-error-message [pause]
+  (let [error (q/create-graphics (q/width) (q/height))]
+    (q/with-graphics error
+      (q/push-style)
+      (q/background 255)
+      (q/fill 0)
+      (q/text-size 15)
+      (let [{:keys [name exception time]} @pause
+            str [(format "Sketch was paused due to an exception thrown in %s" name)
+                 (str "Check REPL or console for stacktrace")
+                 (str "Time: " time)
+                 (str "Fix the error and then press any key to unpause sketch.")]]
+        (q/text (join \newline str) 10 20))
+      (q/pop-style))
+    (q/set-image 0 0 error)))
 
-;; (defn- wrap-draw [options pause]
-;;   (let [draw (:draw options identity)]
-;;     (assoc options
-;;       :draw (wrap-fn pause :draw draw #(draw-error-message pause)))))
+(defn- wrap-draw [options pause]
+  (let [draw (:draw options identity)]
+    (assoc options
+      :draw (wrap-fn pause :draw draw #(draw-error-message pause)))))
 
-;; (defn- unpause [pause]
-;;   (reset! pause nil))
+(defn- unpause [pause]
+  (reset! pause nil))
 
-;; (defn- wrap-key-pressed [options pause]
-;;   (let [key-pressed (:key-pressed options (fn [s e] s))]
-;;     (assoc options
-;;       :key-pressed (wrap-fn pause :key-pressed key-pressed #(unpause pause)))))
+(defn- wrap-key-pressed [options pause]
+  (let [key-pressed (:key-pressed options (fn [s e] s))]
+    (assoc options
+      :key-pressed (wrap-fn pause :key-pressed key-pressed #(unpause pause)))))
 
-;; (defn pause-on-error
-;;   "Pauses sketch if any of user-provided handlers throws error."
-;;   [options]
-;;   (let [pause (atom nil)]
-;;     (-> (into {}
-;;               (for [[name value] options]
-;;                 [name (if (and (u/callable? value)
-;;                                (not= name :draw)
-;;                                (not= name :key-pressed))
-;;                         (wrap-fn pause name value (fn []))
-;;                         value)]))
-;;         (wrap-draw pause)
-;;         (wrap-key-pressed pause))))
+(defn pause-on-error
+  "Pauses sketch if any of user-provided handlers throws error."
+  [options]
+  (let [pause (atom nil)]
+    (-> (into {}
+              (for [[name value] options]
+                [name (if (and (u/callable? value)
+                               (not= name :draw)
+                               (not= name :key-pressed))
+                        (wrap-fn pause name value (fn []))
+                        value)]))
+        (wrap-draw pause)
+        (wrap-key-pressed pause))))
 
 ;; ========== Schema ==========
 
@@ -159,7 +159,7 @@
                                  (->> (or middleware [])
                                       (cons m/fun-mode)
                                       (into [])
-                                      (<- (?> debug? (conj ;;m/pause-on-error
+                                      (<- (?> debug? (conj pause-on-error
                                                            show-frame-rate)))))))
        (s/validate new-quil-sketch-schema)
        (hash-map :options)
