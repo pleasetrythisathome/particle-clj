@@ -24,7 +24,9 @@
   []
   (let [src (:src-paths (get-env))]
     (set-env! :src-paths (conj src "dev")))
-  (comp (watch)
+  (apply set-refresh-dirs (get-env :src-paths))
+  (comp (serve :dir "target")
+        (watch)
         ;; (speak)
         (cljx)
         (garden :styles-var 'particle-clj.css.style/style
@@ -36,12 +38,9 @@
               :unified true
               :source-map true
               :pretty-print true)
-        (reload)
-        (serve {:dir "target"})))
+        (reload)))
 
 (defn dev
   []
-  ;; set tools.namespace refresh directories
-  (apply set-refresh-dirs (get-env :src-paths))
   (require 'dev)
   (in-ns 'dev))
